@@ -23,9 +23,7 @@ module Day5 =
 
         sortedTickets
         |> Seq.pairwise
-        |> Seq.find (fun (x, y) -> (x + 2) = y)
-        |> fst
-        |> (+) 1
+        |> Seq.pick (fun (x, y) -> if y = x + 2 then Some(x + 1) else None)
 
     let day: Day<_, _, _> =
         { parseFile = parseFile
