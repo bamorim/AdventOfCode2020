@@ -7,13 +7,9 @@ module Day5 =
     type SeatId = int
 
     let parseLine (line: string): SeatId =
-        Convert.ToInt32
-            (line
-                .Replace('B', '1')
-                 .Replace('R', '1')
-                 .Replace('F', '0')
-                 .Replace('L', '0'),
-             2)
+        line.ToCharArray()
+        |> Seq.mapi (fun i c -> if c = 'B' || c = 'R' then 1 <<< (9 - i) else 0)
+        |> Seq.sum
 
     let parseFile (filename: string): seq<SeatId> =
         filename
