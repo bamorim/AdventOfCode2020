@@ -16,14 +16,12 @@ module Day5 =
         |> System.IO.File.ReadAllLines
         |> Seq.map parseLine
 
-    let part1 (tickets: seq<SeatId>): int = Seq.max tickets
+    let part1: seq<SeatId> -> SeatId = Seq.max
 
-    let part2 (tickets: seq<SeatId>): int =
-        let sortedTickets = Seq.sort tickets
-
-        sortedTickets
-        |> Seq.pairwise
-        |> Seq.pick (fun (x, y) -> if y = x + 2 then Some(x + 1) else None)
+    let part2: seq<SeatId> -> SeatId =
+        Seq.sort
+        >> Seq.pairwise
+        >> Seq.pick (fun (x, y) -> if y = x + 2 then Some(x + 1) else None)
 
     let day: Day<_, _, _> =
         { parseFile = parseFile
