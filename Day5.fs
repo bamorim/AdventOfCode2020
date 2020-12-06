@@ -7,25 +7,13 @@ module Day5 =
     type SeatId = int
 
     let parseLine (line: string): SeatId =
-        let chars = Seq.ofArray <| line.ToCharArray()
-
-        let isUpper (c: char): bool = c = 'B' || c = 'R'
-
-        let folder (min, max) =
-            function
-            | 'B'
-            | 'R' -> (min + (max - min) / 2 + 1, max)
-            | 'F'
-            | 'L' -> (min, max - (max - min) / 2 - 1)
-            | _ -> failwith "Invalid character"
-
-        let (row, _) =
-            chars |> Seq.take 7 |> Seq.fold folder (0, 127)
-
-        let (col, _) =
-            chars |> Seq.skip 7 |> Seq.fold folder (0, 7)
-
-        row * 8 + col
+        Convert.ToInt32
+            (line
+                .Replace('B', '1')
+                 .Replace('R', '1')
+                 .Replace('F', '0')
+                 .Replace('L', '0'),
+             2)
 
     let parseFile (filename: string): seq<SeatId> =
         filename
@@ -38,8 +26,7 @@ module Day5 =
         let sortedTickets = Seq.sort tickets
 
         sortedTickets
-        |> Seq.skip 1
-        |> Seq.zip sortedTickets
+        |> Seq.pairwise
         |> Seq.find (fun (x, y) -> (x + 2) = y)
         |> fst
         |> (+) 1
