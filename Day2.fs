@@ -2,10 +2,9 @@ namespace Bamorim.AdventOfCode.Y2020
 
 open System
 open Bamorim.AdventOfCode.Y2020.Shared
+open System.Text.RegularExpressions
 
 module Day2 =
-    open System.Text.RegularExpressions
-
     type Entry = int * int * char * string
 
     let lineRegex = "(\d+)-(\d+) (\w): (\w+)"

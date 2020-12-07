@@ -2,9 +2,9 @@ namespace Bamorim.AdventOfCode.Y2020
 
 open System
 open Bamorim.AdventOfCode.Y2020.Shared
+open System.Text.RegularExpressions
 
 module Day4 =
-    open System.Text.RegularExpressions
     type Document = Map<string, string>
 
     let parseFile filename: seq<Document> =
