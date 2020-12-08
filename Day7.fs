@@ -63,11 +63,7 @@ module Day7 =
             |> Map.tryFind id
             |> Option.defaultValue Seq.empty
             |> Seq.fold (fun discovered next ->
-                if Set.contains next discovered then
-                    discovered
-                else
-                    aux discovered next
-            ) newDiscovered
+                if Set.contains next discovered then discovered else aux discovered next) newDiscovered
 
         myBag
         |> aux Set.empty
