@@ -9,7 +9,7 @@ module Day1 =
         |> System.IO.File.ReadAllLines
         |> Seq.map int
 
-    let findSumPair (sum: int) (entries: Set<int>): (int * int) option =
+    let inline findSumPair sum entries =
         entries
         |> Set.toSeq
         |> Seq.tryFind (fun x -> Set.contains (sum - x) entries)

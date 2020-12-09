@@ -10,9 +10,10 @@ module Day9 =
         >> Array.ofSeq
 
     let containSum (prev: uint64 array) (number: uint64): bool =
-        seq { 0 .. prev.Length - 2 }
-        |> Seq.collect (fun i -> seq { for j in i + 1 .. prev.Length - 1 -> (i, j) })
-        |> Seq.exists (fun (i, j) -> prev.[i] + prev.[j] = number)
+        prev
+        |> Set.ofArray
+        |> Day1.findSumPair number
+        |> Option.isSome
 
     let part1 (numbers: uint64 array): uint64 =
         seq { for i in 25 .. numbers.Length -> numbers.[i - 25..i - 1], numbers.[i] }
