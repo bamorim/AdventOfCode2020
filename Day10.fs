@@ -23,18 +23,21 @@ module Day10 =
             else (c1, c3)) (0, 0)
         |> (fun (c1, c3) -> c1 * c3)
 
-    // Imperative and mutable dynamic programming bottom-up approach
     let part2 (adapters: seq<int>): uint64 =
-        let jolts = adapters |> joltsFor |> Array.ofSeq
-        let combinations = Array.map (fun _ -> 0UL) jolts
-        combinations.[0] <- 1UL
+        adapters
+        |> joltsFor
+        |> Seq.fold (fun last3 jolts ->
+            match last3 with
+            | [] -> [ (1UL, jolts) ]
+            | _ ->
+                let combinations =
+                    last3
+                    |> List.filter (fun (_, otherJolts) -> jolts - otherJolts <= 3)
+                    |> List.sumBy fst
 
-        for i in 0 .. combinations.Length - 1 do
-            for j in i + 1 .. i + 3 do
-                if j < combinations.Length
-                   && jolts.[j] - jolts.[i] <= 3 then
-                    combinations.[j] <- combinations.[j] + combinations.[i]
-        combinations.[combinations.Length - 1]
+                (combinations, jolts) :: (List.truncate 2 last3)) []
+        |> List.head
+        |> fst
 
     let day: Day<_, _, _> =
         { parseFile = parseFile
