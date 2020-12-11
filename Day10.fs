@@ -6,32 +6,26 @@ open Bamorim.AdventOfCode.Y2020.Shared
 module Day10 =
     let parseFile: string -> seq<int> = IO.File.ReadLines >> (Seq.map int)
 
-    let part1 (outlets: seq<int>): int =
-        let outletDiff = Seq.min outlets
-        let deviceDiff = 3
+    let joltsFor (adapters: seq<int>) =
+        (Seq.concat << Seq.ofList)
+            [ Seq.singleton 0
+              Seq.sort adapters
+              adapters |> Seq.max |> ((+) 3) |> Seq.singleton ]
 
-        outlets
-        |> Seq.sort
+    let part1 (adapters: seq<int>): int =
+        adapters
+        |> joltsFor
         |> Seq.pairwise
         |> Seq.map (fun (x, next_x) -> next_x - x)
-        |> Seq.append (Seq.ofList [ outletDiff; deviceDiff ])
         |> Seq.fold (fun (c1, c3) diff ->
             if diff = 1 then (c1 + 1, c3)
             elif diff = 3 then (c1, c3 + 1)
             else (c1, c3)) (0, 0)
         |> (fun (c1, c3) -> c1 * c3)
 
-    let joltsArray (outlets: seq<int>): int array =
-        [ Seq.singleton 0
-          Seq.sort outlets
-          Seq.singleton (3 + Seq.max outlets) ]
-        |> Seq.ofList
-        |> Seq.concat
-        |> Array.ofSeq
-
     // Imperative and mutable dynamic programming bottom-up approach
-    let part2 (outlets: seq<int>): uint64 =
-        let jolts = joltsArray outlets
+    let part2 (adapters: seq<int>): uint64 =
+        let jolts = adapters |> joltsFor |> Array.ofSeq
         let combinations = Array.map (fun _ -> 0UL) jolts
         combinations.[0] <- 1UL
 
