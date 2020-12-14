@@ -53,7 +53,7 @@ module Day13 =
             busIds
             |> Seq.mapi (fun offset ->
                 function
-                | Some id -> Some(int64 id, int64 ((id - (offset % id)) % id))
+                | Some id -> Some(int64 id, int64 (id - (offset % id)))
                 | _ -> None)
             |> Seq.choose id
 
