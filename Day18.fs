@@ -4,13 +4,17 @@ open System
 open Bamorim.AdventOfCode.Y2020.Shared
 
 module Day18 =
-
     type Token =
         | Number of int64
         | OpenParens
         | CloseParens
         | Plus
         | Star
+
+    type Expression =
+        | Value of int64
+        | Addition of Expression * Expression
+        | Multiplication of Expression * Expression
 
     let lexer (line: string): Token list =
         line
@@ -33,100 +37,71 @@ module Day18 =
 
     let parseFile: string -> seq<Token list> = IO.File.ReadLines >> Seq.map lexer
 
-    type Part1Expression =
-        | Value of int64
-        | Operations of seq<Part1Operation>
-
-    and Part1Operation =
-        | Add of Part1Expression
-        | Mul of Part1Expression
-
-    let rec evaluatePart1 =
-        function
-        | Value v -> v
-        | Operations ops ->
-            Seq.fold (fun total ->
-                function
-                | Add expr -> total + (evaluatePart1 expr)
-                | Mul expr -> total * (evaluatePart1 expr)) 0L ops
-
-    let part1 (tokens: seq<Token list>): int64 =
-        let parser (tokens: Token list): Part1Expression =
-            let rec parseExpression tokens =
-                match parseOperations [] tokens with
-                | (ops, tokens) -> (Operations ops, tokens)
-
-            and parseOperations operations =
-                function
-                | Plus :: tokens ->
-                    let (primary, rest) = parsePrimary tokens
-                    parseOperations ((Add primary) :: operations) rest
-                | Star :: tokens ->
-                    let (primary, rest) = parsePrimary tokens
-                    parseOperations ((Mul primary) :: operations) rest
-                | CloseParens :: rest -> (Seq.rev operations, CloseParens :: rest)
-                | [] -> (Seq.rev operations, [])
-                // Assume `+` in the beginning of expressions
-                | tokens ->
-                    let (primary, rest) = parsePrimary tokens
-                    parseOperations ((Add primary) :: operations) rest
-
-            and parsePrimary =
-                function
-                | OpenParens :: tokens ->
-                    match parseExpression tokens with
-                    | (expression, CloseParens :: rest) -> (expression, rest)
-                    | (_, token :: rest) -> failwithf "Unexpected token %A. Expecting )" token
-                    | (_, []) -> failwith "Unexpected end of string. Expecting )"
-                | (Number n) :: rest -> (Value n, rest)
-                | _ -> failwith "Unexpected token"
-
-            match parseExpression tokens with
-            | (expr, []) -> expr
-            | (_expr, _rest) -> failwith "Unexpected tokens"
-
-        Seq.sumBy (parser >> evaluatePart1) tokens
-
-    type Expression =
-        | Value of int64
-        | Addition of Expression * Expression
-        | Multiplication of Expression * Expression
-
     let rec evaluate =
         function
         | Value v -> v
         | Addition (a, b) -> (evaluate a) + (evaluate b)
         | Multiplication (a, b) -> (evaluate a) * (evaluate b)
 
-    let part2 (tokens: seq<Token list>): int64 =
-        let parser (tokens: Token list): Expression =
-            let rec parseExpression tokens =
-                match parseAddition tokens with
-                | (lhs, Star :: rest) ->
-                    let (rhs, rest) = parseExpression rest
-                    (Multiplication(lhs, rhs), rest)
-                | (mult, rest) -> (mult, rest)
-
-            and parseAddition tokens =
-                match parsePrimary tokens with
-                | (lhs, Plus :: rest) ->
-                    let (rhs, rest) = parseAddition rest
-                    (Addition(lhs, rhs), rest)
-                | (primary, rest) -> (primary, rest)
-
-            and parsePrimary =
-                function
-                | OpenParens :: tokens ->
-                    match parseExpression tokens with
-                    | (expression, CloseParens :: rest) -> (expression, rest)
-                    | (_, token :: rest) -> failwithf "Unexpected token %A. Expecting )" token
-                    | (_, []) -> failwith "Unexpected end of string. Expecting )"
-                | (Number n) :: rest -> (Value n, rest)
-                | _ -> failwith "Unexpected token"
-
+    // Parses something that looks like a value (either a raw value or a sub-expression)
+    let parsePrimary parseExpression =
+        function
+        | OpenParens :: tokens ->
             match parseExpression tokens with
-            | (expr, []) -> expr
-            | (_expr, _rest) -> failwith "Unexpected tokens"
+            | (expression, CloseParens :: rest) -> (expression, rest)
+            | (_, token :: rest) -> failwithf "Unexpected token %A. Expecting )" token
+            | (_, []) -> failwith "Unexpected end of string. Expecting )"
+        | (Number n) :: rest -> (Value n, rest)
+        | _ -> failwith "Unexpected token"
+
+    let makeParser parseExpression tokens =
+        match parseExpression tokens with
+        | (expr, []) -> expr
+        | (_expr, _rest) -> failwith "Unexpected tokens"
+
+
+    let part1 (tokens: seq<Token list>): int64 =
+        // Reverse the expression to make left-to-right evaluation simpler
+        let revertExpression tokens =
+            tokens
+            |> List.rev
+            |> List.map (function
+                | CloseParens -> OpenParens
+                | OpenParens -> CloseParens
+                | token -> token)
+
+        let rec parseExpression tokens =
+            match parsePrimary parseExpression tokens with
+            | (lhs, Star :: rest) ->
+                let (rhs, rest) = parseExpression rest
+                (Multiplication(lhs, rhs), rest)
+            | (lhs, Plus :: rest) ->
+                let (rhs, rest) = parseExpression rest
+                (Addition(lhs, rhs), rest)
+            | (mult, rest) -> (mult, rest)
+
+        let parser =
+            revertExpression >> (makeParser parseExpression)
+
+        Seq.sumBy (parser >> evaluate) tokens
+
+
+    let part2 (tokens: seq<Token list>): int64 =
+        let rec parseExpression tokens =
+            match parseAddition tokens with
+            | (lhs, Star :: rest) ->
+                let (rhs, rest) = parseExpression rest
+                (Multiplication(lhs, rhs), rest)
+            | (mult, rest) -> (mult, rest)
+
+        and parseAddition tokens =
+            match parsePrimary parseExpression tokens with
+            | (lhs, Plus :: rest) ->
+                let (rhs, rest) = parseAddition rest
+                (Addition(lhs, rhs), rest)
+            | (primary, rest) -> (primary, rest)
+
+        let parser = makeParser parseExpression
 
         Seq.sumBy (parser >> evaluate) tokens
 
