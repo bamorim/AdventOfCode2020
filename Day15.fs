@@ -13,25 +13,16 @@ module Day15 =
         |> Seq.map int
 
     (*
-    Important note: this is not great design because it hides mutability
-    behind an "immutable-like" interface (seq), which can yield invalid results
-
-    For example, if I do:
-        let results = runGame startingNumbers
-        let num1 = results |> Seq.take 2020 |> Seq.last
-        let num2 = results |> Seq.take 2020 |> Seq.last
-
-    You would expect that `num1 = num2`, but that is not the case, because you
-    would re-evaluate the unfolding function with the same "shared" spoken dict
-    which would cause the result to be different.
-
-    I'm just leaving it here for "educational purposes" and will fix in the next commit
+    Now this is better than last interation because it keeps the mutability
+    inside the runGame function, so it is impossible to create a bug by
+    just running the game twice because the Seq unfolding is kept private
     *)
 
-    let runGame (startingNumbers: seq<int>): seq<int> =
+    let runGame (startingNumbers: seq<int>) (n: int): int =
         let mutable spoken = Dictionary<int, int>()
 
-        Seq.unfold (fun (lastNum, lastI, startingNumbers) ->
+        (-1, 0, List.ofSeq startingNumbers)
+        |> Seq.unfold (fun (lastNum, lastI, startingNumbers) ->
             match startingNumbers with
             | num :: rest ->
                 if lastNum <> -1 then spoken.[lastNum] <- lastI
@@ -39,22 +30,15 @@ module Day15 =
             | [] ->
                 let nextNum =
                     if spoken.ContainsKey lastNum then lastI - spoken.[lastNum] else 0
-
                 spoken.[lastNum] <- lastI
 
-                Some(nextNum, (nextNum, lastI + 1, []))) (-1, 0, List.ofSeq startingNumbers)
-
-    let part1 (startingNumbers: seq<int>): int =
-        startingNumbers
-        |> runGame
-        |> Seq.take 2020
+                Some(nextNum, (nextNum, lastI + 1, [])))
+        |> Seq.take n
         |> Seq.last
 
-    let part2 (startingNumbers: seq<int>): int =
-        startingNumbers
-        |> runGame
-        |> Seq.take 30000000
-        |> Seq.last
+    let part1 (startingNumbers: seq<int>): int = runGame startingNumbers 2020
+
+    let part2 (startingNumbers: seq<int>): int = runGame startingNumbers 30000000
 
     let day: Day<_, _, _> =
         { parseFile = parseFile
