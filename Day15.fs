@@ -12,7 +12,7 @@ module Day15 =
         |> Array.map int
 
     let runGame (n: int) (startingNumbers: int []): int =
-        let mutable spoken = Dictionary<int, int>()
+        let spoken = Dictionary<int, int>()
         let mutable num = -1
 
         for i in 0 .. (n - 1) do
