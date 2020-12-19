@@ -16,7 +16,7 @@ module Program =
     [<EntryPoint>]
     let main argv =
         let dayStr =
-            if argv.Length > 0 then argv.[0] else "17"
+            if argv.Length > 0 then argv.[0] else "18"
 
         match dayStr with
         | "1" -> runDay 1 Day1.day
@@ -36,6 +36,7 @@ module Program =
         | "15" -> runDay 15 Day15.day
         | "16" -> runDay 16 Day16.day
         | "17" -> runDay 17 Day17.day
+        | "18" -> runDay 18 Day18.day
         | _ -> failwith "Invalid day"
 
         0 // return an integer exit code
