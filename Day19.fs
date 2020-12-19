@@ -2,7 +2,6 @@ namespace Bamorim.AdventOfCode.Y2020
 
 open System
 open Bamorim.AdventOfCode.Y2020.Shared
-open System.Text.RegularExpressions
 
 module Day19 =
     type RuleId = int
@@ -41,28 +40,42 @@ module Day19 =
             rules, strings
         | _ -> failwith "invalid input"
 
+    let matchRule0 rules (string: string) =
+        let rec matchRule (ruleId: RuleId) (chars: char list) =
+            match (chars, Map.find ruleId rules) with
+            | (_, Combination options) -> matchOptions chars options
+            | (c :: chars, Const expected) -> if c = expected then Seq.singleton chars else Seq.empty
+            | _ -> Seq.empty
+
+        and matchOptions chars (options: seq<seq<RuleId>>): seq<char list> =
+            Seq.collect (matchSequence chars) options
+
+        and matchSequence chars (ruleIds: seq<RuleId>): seq<char list> =
+            Seq.fold (fun state ruleId -> Seq.collect (fun chars -> matchRule ruleId chars) state) (Seq.singleton chars)
+                ruleIds
+
+        string.ToCharArray()
+        |> List.ofArray
+        |> matchRule 0
+        |> Seq.exists List.isEmpty
+
     let part1 ((rules, strings): Input): int =
         let rules = Map.ofSeq rules
 
-        let rec ruleToRegex ruleId =
-            match Map.find ruleId rules with
-            | Const c -> c.ToString()
-            | Combination ors ->
-                ors
-                |> Seq.map (fun seqs ->
-                    seqs
-                    |> Seq.map ruleToRegex
-                    |> (fun x -> String.Join("", x)))
-                |> (fun x -> String.Join("|", x))
-                |> sprintf "(%s)"
-
-        let ruleRegex = sprintf "^%s$" (ruleToRegex 0)
-
         strings
-        |> Seq.filter (fun string -> Regex.Match(string, ruleRegex).Success)
+        |> Seq.filter (matchRule0 rules)
         |> Seq.length
 
-    let part2 ((rules, strings): Input): int = failwith "Part 2 not implemented"
+    let part2 ((rules, strings): Input): int =
+        let rules =
+            rules
+            |> Map.ofSeq
+            |> Map.add 8 (parseRule "42 | 42 8")
+            |> Map.add 11 (parseRule "42 31 | 42 11 31")
+
+        strings
+        |> Seq.filter (matchRule0 rules)
+        |> Seq.length
 
     let day: Day<_, _, _> =
         { parseFile = parseFile
