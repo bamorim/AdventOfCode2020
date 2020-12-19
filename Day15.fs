@@ -12,33 +12,28 @@ module Day15 =
         |> Seq.ofArray
         |> Seq.map int
 
-    (*
-    Now this is better than last interation because it keeps the mutability
-    inside the runGame function, so it is impossible to create a bug by
-    just running the game twice because the Seq unfolding is kept private
-    *)
-
-    let runGame (startingNumbers: seq<int>) (n: int): int =
+    let runGame (n: int) (startingNumbers: seq<int>): int =
         let mutable spoken = Dictionary<int, int>()
+        let mutable startingNumbers = List.ofSeq startingNumbers
+        let mutable num = -1
 
-        (-1, 0, List.ofSeq startingNumbers)
-        |> Seq.unfold (fun (lastNum, lastI, startingNumbers) ->
+        for i in 1 .. n do
             match startingNumbers with
-            | num :: rest ->
-                if lastNum <> -1 then spoken.[lastNum] <- lastI
-                Some(num, (num, lastI + 1, rest))
+            | nextNum :: rest ->
+                if num <> -1 then spoken.[num] <- i
+                startingNumbers <- rest
+                num <- nextNum
             | [] ->
                 let nextNum =
-                    if spoken.ContainsKey lastNum then lastI - spoken.[lastNum] else 0
-                spoken.[lastNum] <- lastI
+                    if spoken.ContainsKey num then i - spoken.[num] else 0
 
-                Some(nextNum, (nextNum, lastI + 1, [])))
-        |> Seq.take n
-        |> Seq.last
+                spoken.[num] <- i
+                num <- nextNum
 
-    let part1 (startingNumbers: seq<int>): int = runGame startingNumbers 2020
+        num
 
-    let part2 (startingNumbers: seq<int>): int = runGame startingNumbers 30000000
+    let part1: seq<int> -> int = runGame 2020
+    let part2: seq<int> -> int = runGame 30000000
 
     let day: Day<_, _, _> =
         { parseFile = parseFile
