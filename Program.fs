@@ -42,6 +42,7 @@ module Program =
         |> addDay 18 Day18.day
         |> addDay 19 Day19.day
         |> addDay 20 Day20.day
+        |> addDay 21 Day21.day
 
     let (|DayRunner|_|) (value: string) =
         let success, value = Int32.TryParse value
