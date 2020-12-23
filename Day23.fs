@@ -64,7 +64,7 @@ module Day23 =
             | cups -> cups |> cycle |> afterOne
 
         initialState
-        |> doMoves 1
+        |> doMoves 100
         |> afterOne
         |> digitsToInt
 
