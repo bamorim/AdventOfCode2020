@@ -13,18 +13,20 @@ module Day15 =
 
     let runGame (n: int) (startingNumbers: int []): int =
         let spoken = Dictionary<int, int>()
-        let mutable num = -1
 
-        for i in 0 .. (n - 1) do
-            let nextNum =
-                if i < startingNumbers.Length then startingNumbers.[i]
-                elif spoken.ContainsKey num then i - spoken.[num]
+        for (i, num) in Array.indexed startingNumbers.[..^0] do spoken.[num] <- i
+        
+        let mutable lastNum =  startingNumbers.[^0]
+
+        for i in startingNumbers.Length .. (n - 1) do
+            let num =
+                if spoken.ContainsKey lastNum then i - 1 - spoken.[lastNum]
                 else 0
 
-            if num <> -1 then spoken.[num] <- i
-            num <- nextNum
+            spoken.[lastNum] <- i - 1
+            lastNum <- num
 
-        num
+        lastNum
 
     let day: Day<_, _, _> =
         { parseFile = parseFile
